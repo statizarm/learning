@@ -1,3 +1,5 @@
+module FSM where
+
 import State
 
 type FSM s = State s s
@@ -30,19 +32,3 @@ speaker = fsm $ trans
 	      trans Louder (s    , l) = (s    , louder l)
 	      trans Quiter (s    , l) = (s    , quiter l)
 
-type UsrPipe = [Usr]
-
-mkPipe :: IO UsrPipe
-mkPipe = map matchToken <$> words <$> getContents
-
-matchToken :: String -> Usr
-matchToken tok | tok == "Button" = Button
-               | tok == "Quiter" = Quiter
-	       | tok == "Louder" = Louder
-	       | otherwise       = Other
-
-main :: IO ()
-main = let pipe = mkPipe
-           state = mapM speaker <$> pipe
-       in  print =<< fmap (($ (Sleep, Level 0)) . runState) state
-       
