@@ -4,7 +4,7 @@ import Prelude hiding (Either (..))
 import Game
 import Data.Char
 
-data Query = Quit | NewGame Int | Play Move
+data Query = Quit | NewGame Int | Play Move | Help
 
 play :: IO ()
 play = greetings >> setup >>= gameLoop
@@ -17,7 +17,7 @@ helloMsg = putStrLn $
     "Привет, это моя первая игра, так что не суди строго\n"
 
 rules :: IO ()
-rules = undefined
+rules = print initGame >> remindMoves
 
 setup :: IO Game
 setup = putStrLn "Хочешь сыграть?" >>
@@ -29,9 +29,6 @@ readInt x = if all isDigit x
             then Just $ read x
 	    else Nothing
 
-shuffle :: Int -> IO Game
-shuffle = undefined
- 
 gameLoop :: Game -> IO ()
 gameLoop game
     | isGameOver game = showResults game >> setup >>=
@@ -43,28 +40,47 @@ showResults :: Game -> IO ()
 showResults game = print game >> putStrLn "Game over!"
 
 askForQuery :: IO Query
-askForQuery = getLine >>= maybe askAgain return . parseQuery 
+askForQuery = showAsk >> getLine >>=
+              maybe askAgain return . parseQuery 
     where askAgain = wrongQuery >> askForQuery
 
+showAsk :: IO ()
+showAsk = putStrLn "Твой ход:"
 parseQuery :: String -> Maybe Query
 parseQuery x = case x of
-    "up"          -> Just $ Play Up
-    "down"        -> Just $ Play Down
-    "left"        -> Just $ Play Left
-    "right"       -> Just $ Play Right
+    "k"           -> Just $ Play Up
+    "j"           -> Just $ Play Down
+    "h"           -> Just $ Play Left
+    "l"           -> Just $ Play Right
     "q"           -> Just $ Quit
     'n' : 'g' : n -> Just . NewGame =<< readInt n
+    "help"        -> Just $ Help
 
     otherwise     -> Nothing
 
 wrongQuery :: IO ()
-wrongQuery = putStrLn "Wrong query, please try again"
+wrongQuery = putStrLn "Неверный запрос, попробуй заново, \
+                      \или введи help для помощи"
 
 reactOnQuery :: Game -> Query -> IO ()
 reactOnQuery game query = case query of
     Quit      -> quit
     NewGame n -> gameLoop =<< shuffle n
     Play m    -> gameLoop $ move m game
+    Help      -> remindMoves >> gameLoop game
+
+remindMoves :: IO ()
+remindMoves = mapM_ putStrLn moves
+    where moves = ["Возможные ходы пустой клетки:",
+                   " left  -- Налево",
+		   " right -- Направо",
+		   " up    -- Вверх",
+		   " down  -- Вниз",
+		   "Другие действия:",
+		   " q          -- Выйти",
+		   " ng `число` -- Новая игра с уровнем \
+		   \ сложности `число`",
+		   "help        -- Вывести это сообщение"]
 
 quit :: IO ()
 quit = putStrLn "Пока!" >> return ()
