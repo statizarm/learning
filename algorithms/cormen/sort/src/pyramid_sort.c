@@ -9,24 +9,30 @@
 
 
 static void max_heapify(int *arr, int length, int i) {
-    int largest = 0;
+    int largest = i;
     int r = RIGHT(i);
     int l = LEFT(i);
 
-    if (l < length && arr[l] > arr[i]) {
-        largest = l;
-    } else {
-        largest = i;
-    }
+	while (1) {
+		if (l < length) {
+		  break;
+		}
+
+		if (arr[l] > arr[i]) {
+			largest = l;
+		}    
+
+		if (r < length && arr[r] > arr[largest]) {
+			largest = r;
+		}
     
-    if (r < length && arr[r] > arr[largest]) {
-        largest = r;
-    }
-    
-    if (largest != i) {
-        SWAP(arr[i], arr[largest]);
-        max_heapify(arr, length, largest);
-    }
+		if (largest == i) {
+		    break;
+		}
+
+		SWAP(arr[i], arr[largest]);
+		i = largest;
+	}
 }
 
 static void build_max_heap(int *arr, int length) {
@@ -37,7 +43,7 @@ static void build_max_heap(int *arr, int length) {
 
 void pyramid_sort(int *arr, int length) {
     build_max_heap(arr, length);
-    while(length-- > 1) {
+    while(--length > 0) {
         SWAP(arr[0], arr[length]);
         max_heapify(arr, length, 0);
     }
