@@ -1,14 +1,12 @@
+#include <stdio.h>
 #include <stdlib.h>
 
 extern void _counting_sort(int *arr, int length, int min, int max) {
     int size = max - min + 1;
     int *indexes = (int *) malloc(sizeof(int) * size);
+    int *ranges = (int *) malloc(sizeof(int) * size);
+	int elem, id;
     if (!indexes) {
-        return;
-    }
-    int *sorted_arr = (int *) malloc(sizeof(int) * length);
-    if (!sorted_arr) {
-        free(indexes);
         return;
     }
     for (int i = 0; i < size; i++) {
@@ -19,15 +17,22 @@ extern void _counting_sort(int *arr, int length, int min, int max) {
     }
     for (int i = 1; i < size; i++) {
         indexes[i] += indexes[i - 1];
+		ranges[i] = indexes[i];
     }
+	ranges[0] = indexes[0];
     for (int i = 0; i < length; i++) {
-        sorted_arr[indexes[arr[i] - min] - 1] = arr[i];
-        indexes[arr[i] - min] -= 1;
+		elem = arr[i];
+		id = elem - min;
+		if (ranges[id - 1] > i || i >= ranges[id]) {
+			for (int j = --indexes[id]; j != i; j = --indexes[id]) {
+				arr[i] = arr[j];
+				arr[j] = elem;
+				elem = arr[i];
+				id = elem - min;
+			}
+		}
     }
-    for (int i = 0; i < length; i++) {
-        arr[i] = sorted_arr[i];
-    }
-    free(sorted_arr);
+	free (ranges);
     free(indexes);
 }
 
