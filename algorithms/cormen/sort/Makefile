@@ -29,6 +29,7 @@ LIB_DEPS	=	\
 				$(LIB_DIR)insert_sort.o\
 				$(LIB_DIR)bit_radix_quick_sort.o\
 				$(LIB_DIR)selection_sort.o\
+				$(LIB_DIR)bit_basket_radix_sort.o\
 				$(LIB_DIR)merge_sort.o
 
 TARGET		=	test

@@ -14,7 +14,7 @@ static void max_heapify(int *arr, int length, int i) {
     int l = LEFT(i);
 
 	while (1) {
-		if (l < length) {
+		if (l >= length) {
 		  break;
 		}
 
@@ -32,6 +32,8 @@ static void max_heapify(int *arr, int length, int i) {
 
 		SWAP(arr[i], arr[largest]);
 		i = largest;
+		l = LEFT (i);
+		r = RIGHT (i);
 	}
 }
 

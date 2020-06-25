@@ -6,15 +6,15 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define DEFAULT_MAX_NUMBER (1 << 16)
-#define DEFAULT_MIN_NUMBER -(1 << 16)
+#define DEFAULT_MAX_NUMBER (1 << 24)
+#define DEFAULT_MIN_NUMBER 0 //-(1 << 16)
 #define DEFAULT_LIB_DIR "lib/"
 #define DEFAULT_LIB_NAME "libsort.so"
 
 #ifdef __DEBUG
 #define DEFAULT_ARRAY_SIZE 1 << 4
 #else
-#define DEFAULT_ARRAY_SIZE 1 << 24
+#define DEFAULT_ARRAY_SIZE 1 << 26
 #endif // __DEBUG
 
 func_list_t *make_default_list(func_list_t *head, char *lib_path, char *lib_name) {
@@ -25,6 +25,7 @@ func_list_t *make_default_list(func_list_t *head, char *lib_path, char *lib_name
         "counting_sort",
         "radix_sort",
         "bit_radix_sort",
+		"bit_basket_radix_sort",
 //      "insert_sort",
 //		"selection_sort",
 		"merge_sort"

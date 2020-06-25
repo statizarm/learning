@@ -27,9 +27,36 @@ static void _counting_sort_on_digit(int *arr, int length, int rad) {
     free(sorted_arr);
 }
 
+void swap (int *arr, int l, int r)
+{
+	int tmp = arr[l];
+	arr[l] = arr[r];
+	arr[r] = tmp;
+}
+
+int __bit_partition (int *arr, int length, int n_bit) {
+	unsigned int mask = 0x01 << n_bit;
+	int j = 0;
+
+	for (int i = 0; i < j; ++i) {
+		if (!(arr[i] & mask)) {
+			swap (arr, i, j++);
+		}
+	}
+	return j;
+}
+
+void _sort_by_bit (int *arr, int length, int n_bit) {
+	int q = __bit_partition (arr, length, n_bit);
+
+	for (int i = q, j = length - 1; i < j; ++i, --j) {
+		swap (arr, i, j);
+	}
+}
+
 void radix_sort(int *arr, int length) {
     int max = arr[0];
-    for (int i = 0; i < length; i++) {
+    for (int i = 1; i < length; i++) {
         if (arr[i] > max) {
             max = arr[i];
         }
@@ -38,4 +65,9 @@ void radix_sort(int *arr, int length) {
         i *= 10;
         _counting_sort_on_digit(arr, length, i);
     }
+
+	/*for (int i = 0; i < 32; ++i) {
+		_sort_by_bit (arr, length, i);
+	}*/
 }
+
