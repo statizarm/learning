@@ -8,12 +8,12 @@ void rb_tree_insert(struct rb_tree_node **head, int64_t data)
 	if (*head == NULL) {
 		*head = malloc(sizeof(struct rb_tree_node));
 
-		*head->left = NULL;
-		*head->right = NULL;
+		(*head)->left = NULL;
+		(*head)->right = NULL;
 
-		*head->data = data;
+		(*head)->data = data;
 
-		*head->color = RED;
+		(*head)->color = RED;
 	} else if (data > (*head)->data) {
 		rb_tree_insert (&(*head)->right, data);
 	} else if (data < (*head)->data) {
@@ -21,20 +21,20 @@ void rb_tree_insert(struct rb_tree_node **head, int64_t data)
 	}
 }
 
-void rb_tree_delete(struct rb_tree_delete **head, int64_t data)
+void rb_tree_delete(struct rb_tree_node **head, int64_t data)
 {
 }
 
-struct rb_tree_node *rb_tree_search(struct rb_tree_node **head, int64_t data)
+struct rb_tree_node *rb_tree_search(struct rb_tree_node *head, int64_t data)
 {
-	if (*head == NULL) {
-		return NULL
-	} else if (data > (*head)->data) {
-		return rb_tree_search ((*head)->right, data);
-	} else if (data < (*head)->data) {
-		return rb_tree_search ((*head)->left, data);
+	if (head == NULL) {
+		return NULL;
+	} else if (data > head->data) {
+		return rb_tree_search (head->right, data);
+	} else if (data < head->data) {
+		return rb_tree_search (head->left, data);
 	} else {
-		return *head;
+		return head;
 	}
 }
 
@@ -52,8 +52,8 @@ void rb_node_toa(struct rb_tree_node *head, char *buf)
 void rb_tree_free (struct rb_tree_node **head)
 {
 	if (*head != NULL) {
-		rb_tree_free(head->right);
-		rb_tree_free(head->left);
+		rb_tree_free(&(*head)->right);
+		rb_tree_free(&(*head)->left);
 
 		free (*head);
 		*head = NULL;

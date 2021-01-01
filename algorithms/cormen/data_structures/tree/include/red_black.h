@@ -4,6 +4,8 @@
 #define BLACK	0
 #define RED	1
 
+#include <stdint.h>
+
 struct rb_tree_node {
 	struct rb_tree_node *left;
 	struct rb_tree_node *right;
@@ -14,7 +16,8 @@ struct rb_tree_node {
 
 void rb_tree_insert(struct rb_tree_node **head, int64_t data);
 void rb_tree_delete(struct rb_tree_node **head, int64_t data);
-struct rb_tree_node *rb_tree_search(struct rb_tree_node *head);
+struct rb_tree_node *rb_tree_search(struct rb_tree_node *head, int64_t data);
+void rb_tree_free(struct rb_tree_node **head);
 
 void rb_node_toa (struct rb_tree_node *node, char *buf);
 
