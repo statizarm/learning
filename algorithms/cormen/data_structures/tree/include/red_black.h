@@ -18,6 +18,8 @@ void rb_tree_insert(struct rb_tree_node **head, int64_t data);
 void rb_tree_delete(struct rb_tree_node **head, int64_t data);
 struct rb_tree_node *rb_tree_search(struct rb_tree_node *head, int64_t data);
 void rb_tree_free(struct rb_tree_node **head);
+void rb_left_rotate(struct rb_tree_node *head);
+void rb_right_rotate(struct rb_tree_node *head);
 
 void rb_node_toa (struct rb_tree_node *node, char *buf);
 

@@ -15,8 +15,9 @@ struct _tree_node {
 };
 
 struct _node_frame {
-	uint32_t start;
-	uint32_t end;
+	uint16_t start;
+	uint16_t end;
+	uint16_t pos;
 };
 
 struct __list {
@@ -46,7 +47,7 @@ struct _node_frame _hash_tab_delete(struct _hash_tab *tab,
 	struct _tree_node *key);
 
 
-struct _queue *_queue_create(uint64_t size);
+struct _queue *_queue_create(uint64_t size) __attribute__((warn_unused_result));
 void _queue_free(struct _queue *q);
 
 struct _tree_node *_dequeue(struct _queue *nqueue);
@@ -82,8 +83,12 @@ void tree_print (void *head, void (*ntoa) (void *, char *))
 		for (int i = 0; i < qlen; ++i) {
 			node = _dequeue(nodes_q);
 
-			_enqueue(nodes_q, node->left);
-			_enqueue(nodes_q, node->right);
+			if (node->left) {
+				_enqueue(nodes_q, node->left);
+			}
+			if (node->right) {
+				_enqueue(nodes_q, node->right);
+			}
 
 			frame = _hash_tab_delete(frame_tab, node);
 
@@ -97,7 +102,7 @@ void tree_print (void *head, void (*ntoa) (void *, char *))
 			printed = frame.end;
 		}
 
-		puts("\n\n");
+		puts("");
 	}
 
 	_hash_tab_free(frame_tab);
@@ -135,7 +140,7 @@ struct _node_frame __list_delete(struct __list **head, struct _tree_node *key);
 void _hash_tab_insert(struct _hash_tab *tab, struct _tree_node *key,
 	struct _node_frame frame)
 {
-	__list_insert(&tab->mem[__hash(key, tab->size)], key, frame);	
+	__list_insert(tab->mem + __hash(key, tab->size), key, frame);	
 }
 
 struct _node_frame _hash_tab_delete(struct _hash_tab *tab,
@@ -155,17 +160,19 @@ void __list_free(struct __list *head)
 uint64_t __hash(struct _tree_node *key, uint64_t mod)
 {
 	uint64_t res = (uint64_t) key;
-	return res << 2 % mod;
+	return (res >> 3) % mod;
 }
 
 void __list_insert(struct __list **head, struct _tree_node *key,
 	struct _node_frame frame)
 {
 	struct __list *new_node = malloc(sizeof(struct __list));
-	new_node->next = *head;
-	new_node->frame = frame;
-
-	*head = new_node;
+	if (new_node != NULL) {
+		new_node->next = *head;
+		new_node->frame = frame;
+		new_node->key = key;
+		*head = new_node;
+	}
 }
 
 struct _node_frame __list_delete(struct __list **head, struct _tree_node *key)
@@ -191,11 +198,12 @@ struct _node_frame __list_delete(struct __list **head, struct _tree_node *key)
 struct _queue *_queue_create(uint64_t size)
 {
 	struct _queue *q = malloc(sizeof(struct _queue));
-
-	q->size = size;
-	q->last = q->first = 0;
-	q->mem = calloc(size, sizeof(struct _tree_node *));
-
+	if (q) {
+		*(void **) &q->mem = calloc(size, sizeof(struct _tree_node *));
+		q->size = size;
+		q->first = 0;
+		q->last = 0;
+	}
 	return q;
 }
 
@@ -214,7 +222,7 @@ void _enqueue(struct _queue *q, struct _tree_node *node)
 struct _tree_node *_dequeue(struct _queue *q)
 {
 	struct _tree_node *node = q->mem[q->first];
-	q->first = (q->first - 1) % q->size;
+	q->first = (q->first + 1) % q->size;
 	return node;
 }
 
@@ -242,13 +250,10 @@ struct _node_frame __calc_frames(struct _tree_node *head,
 	uint32_t min_width = (uint32_t) log10(head->data) + 1;
 	struct _node_frame l_frame = {
 		.start = offset,
-		.end = offset + min_width
+		.end = offset + min_width,
+		.pos = offset + min_width / 2
 	};
-	struct _node_frame r_frame = {
-		.start = l_frame.end,
-		.end = l_frame.end + min_width
-	};
-
+	struct _node_frame r_frame;
 	struct _node_frame frame;
 
 	if (head->left != NULL) {
@@ -256,6 +261,7 @@ struct _node_frame __calc_frames(struct _tree_node *head,
 
 		if (l_frame.end - l_frame.start < min_width) {
 			l_frame.end = l_frame.start + min_width;
+			l_frame.pos = l_frame.start + min_width / 2;
 		}
 
 		_hash_tab_insert(ftab, head->left, l_frame);
@@ -263,26 +269,40 @@ struct _node_frame __calc_frames(struct _tree_node *head,
 	
 
 	if (head->right != NULL) {
-		r_frame = __calc_frames (head->right, ftab, l_frame.end);
+		r_frame = __calc_frames (head->right, ftab,
+			l_frame.end + min_width);
 		_hash_tab_insert(ftab, head->right, r_frame);
+	} else {
+		r_frame.start = l_frame.end + min_width;
+		r_frame.end = r_frame.start + min_width;
+		r_frame.pos = (r_frame.start + r_frame.end ) / 2;
 	}
 
 	frame.start = l_frame.start;
 	frame.end = r_frame.end;
+	frame.pos = (l_frame.pos + r_frame.pos) / 2;
+
+	return frame;
 }
 
 void _node_print(struct _tree_node *node, struct _node_frame frame,
 	void (*ntoa)(void *, char *))
 {
+	//printf("start=%d end=%d\n", frame.start, frame.end);
 	char buf[32];
-	uint32_t len;
+	int32_t len;
 	ntoa(node, buf);
 
-	len = strlen (buf);
+	len = (int32_t) log10(node->data) + 1;
+	//printf ("%d", delta);
 
-	len = printf("%.*s", (frame.end - frame.start - len / 2), buf);
+	for (int32_t i = frame.start; i < frame.pos - len / 2; ++i) {
+		putchar(' ');
+	}
 
-	for (int64_t i = frame.end - frame.start; i > len; --i) {
+	printf("%s", buf);
+
+	for (int32_t i = frame.pos + len / 2; i < frame.end; ++i) {
 		putchar(' ');
 	}
 }

@@ -1,5 +1,6 @@
 FLAGS 		= 	-Iinclude/\
-			-lm
+			-lm\
+			-fanalyzer
 SRC		=\
 			src/red_black.c\
 			src/main.c\

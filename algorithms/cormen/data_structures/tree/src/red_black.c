@@ -60,3 +60,42 @@ void rb_tree_free (struct rb_tree_node **head)
 	}
 }
 
+void rb_left_rotate(struct rb_tree_node *head)
+{
+	struct rb_tree_node tmp;
+	if (head->right) {
+		tmp.data = head->data;
+		tmp.color = head->color;
+		tmp.left = head->left;
+		tmp.right = head->right;
+
+		head->data = head->right->data;
+		head->color = head->right->color;
+		head->right = head->right->right;
+		
+		tmp.right->data = tmp.data;
+		tmp.right->color = tmp.color;
+		tmp.right->right = tmp.right->left;
+		tmp.right->left = head->left;
+		head->left = tmp.right;
+	}
+}
+
+void rb_right_rotate(struct rb_tree_node *head)
+{
+	struct rb_tree_node tmp;
+	if (head->left) {
+		tmp = *head;
+
+		head->data = head->left->data;
+		head->color = head->left->color;
+		head->left = head->left->left;
+
+		tmp.left->data = tmp.data;
+		tmp.left->color = tmp.color;
+		tmp.left->left = tmp.left->right;
+		tmp.left->right = head->right;
+		head->right = tmp.left;
+	}
+}
+
