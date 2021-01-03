@@ -38,6 +38,8 @@ struct _queue {
 	uint32_t last;
 };
 
+extern struct _tree_node *nil;
+
 struct _hash_tab *_hash_tab_create(uint64_t size);
 void _hash_tab_free(struct _hash_tab *tab);
 
@@ -83,10 +85,10 @@ void tree_print (void *head, void (*ntoa) (void *, char *))
 		for (int i = 0; i < qlen; ++i) {
 			node = _dequeue(nodes_q);
 
-			if (node->left) {
+			if (node->left != nil) {
 				_enqueue(nodes_q, node->left);
 			}
-			if (node->right) {
+			if (node->right != nil) {
 				_enqueue(nodes_q, node->right);
 			}
 
@@ -256,7 +258,7 @@ struct _node_frame __calc_frames(struct _tree_node *head,
 	struct _node_frame r_frame;
 	struct _node_frame frame;
 
-	if (head->left != NULL) {
+	if (head->left != nil) {
 		l_frame = __calc_frames (head->left, ftab, offset);
 
 		if (l_frame.end - l_frame.start < min_width) {
@@ -268,7 +270,7 @@ struct _node_frame __calc_frames(struct _tree_node *head,
 	}
 	
 
-	if (head->right != NULL) {
+	if (head->right != nil) {
 		r_frame = __calc_frames (head->right, ftab,
 			l_frame.end + min_width);
 		_hash_tab_insert(ftab, head->right, r_frame);
