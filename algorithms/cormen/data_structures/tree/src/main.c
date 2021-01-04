@@ -1,7 +1,12 @@
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
+#include <stdlib.h>
+
 #include "red_black.h"
 #include "tree_print.h"
+
+void insert_random_n(struct rb_tree_node **head, int32_t n);
 
 int main (int argc, char **argv) {
 	int32_t data;
@@ -58,6 +63,13 @@ int main (int argc, char **argv) {
 
 			rb_right_rotate(rb_tree_search(head, data));
 			puts("OK");
+		} else if (!strcmp(buf, "RANDOM")) {
+			if (scanf("%d", &data) <= 0) {
+				goto expected_int32_data;
+			}
+
+			insert_random_n(&head, data);
+			puts("OK");
 		} else {
 			puts("UNKNOWN command!");
 		}
@@ -72,4 +84,12 @@ expected_int32_data:
 	puts("EXPECTED an int32 data\n");
 	rb_tree_free(&head);
 	return 1;
+}
+
+void insert_random_n(struct rb_tree_node **head, int32_t n)
+{
+	srand(time(NULL));
+	for (int32_t i = 0; i < n; ++i) {
+		rb_tree_insert(head, rand() % (n << 1));
+	}
 }

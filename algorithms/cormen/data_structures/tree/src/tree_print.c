@@ -6,7 +6,7 @@
 #include "tree_print.h"
 
 #define FRAME_TAB_SIZE 127
-#define NODE_QUEUE_SIZE 32
+#define NODE_QUEUE_SIZE 1024
 
 struct _tree_node {
 	struct _tree_node *left;
@@ -246,10 +246,21 @@ void _calc_frames(struct _tree_node *head, struct _hash_tab *ftab)
 	_hash_tab_insert(ftab, head, frame);
 }
 
+uint32_t __calc_data_len(int64_t data)
+{
+	if (data == 0) {
+		return 1;
+	} else if (data < 0) {
+		return (uint32_t) log10(-data) + 2;
+	} else {
+		return (uint32_t) log10(data) + 1;
+	}
+}
+
 struct _node_frame __calc_frames(struct _tree_node *head,
 	struct _hash_tab *ftab, uint32_t offset)
 {
-	uint32_t min_width = (uint32_t) log10(head->data) + 1;
+	uint32_t min_width = __calc_data_len(head->data);
 	struct _node_frame l_frame = {
 		.start = offset,
 		.end = offset + min_width,
@@ -295,16 +306,16 @@ void _node_print(struct _tree_node *node, struct _node_frame frame,
 	int32_t len;
 	ntoa(node, buf);
 
-	len = (int32_t) log10(node->data) + 1;
-	//printf ("%d", delta);
+	len = __calc_data_len(node->data);
 
 	for (int32_t i = frame.start; i < frame.pos - len / 2; ++i) {
+		//printf("pos=%d len=%d\n", frame.pos, len);
 		putchar(' ');
 	}
 
 	printf("%s", buf);
 
-	for (int32_t i = frame.pos + len / 2; i < frame.end; ++i) {
+	for (int32_t i = frame.pos + (len + 1) / 2; i < frame.end; ++i) {
 		putchar(' ');
 	}
 }

@@ -41,6 +41,8 @@ static void _rb_tree_insert(struct rb_tree_node **head, int64_t data)
 			curr = &(*curr)->left;
 		} else if (data > (*curr)->data) {
 			curr = &(*curr)->right;
+		} else {
+			goto exit;
 		}
 	}
 
@@ -74,6 +76,7 @@ static void _rb_tree_insert(struct rb_tree_node **head, int64_t data)
 		}
 	}
 
+exit:
 	(*head)->color = BLACK;
 }
 
