@@ -96,8 +96,112 @@ static void _rb_tree_left_rotate(struct rb_tree_node **head)
 	(*head)->left->right = tmp;
 }
 
+static void _delete_fixup(struct rb_tree_node ***stack, uint8_t stack_top);
+
 void rb_tree_delete(struct rb_tree_node **head, int64_t data)
 {
+	struct rb_tree_node **parent_stack[32];
+	struct rb_tree_node **curr = head;
+	struct rb_tree_node *tmp;
+	uint8_t stack_top = 0;
+	uint8_t node_stack_id, color;
+
+	while (*curr != nil) {
+		parent_stack[stack_top++] = curr;
+		if (data < (*curr)->data) {
+			curr = &(*curr)->left;
+		} else if (data > (*curr)->data) {
+			curr = &(*curr)->right;
+		} else {
+			goto node_found;
+		}
+	}
+	return;
+node_found:
+	tmp = *curr;
+	if ((*curr)->right != nil) {
+		node_stack_id = stack_top;
+
+		curr = &(*curr)->right;
+		while (1) {
+			parent_stack[stack_top++] = curr;
+			if ((*curr)->left == nil) {
+				break;
+			}
+			curr = &(*curr)->left;
+		}
+		color = (*curr)->color;
+
+		*parent_stack[node_stack_id - 1] = *curr;
+		(*parent_stack[node_stack_id - 1])->color = tmp->color;
+		parent_stack[node_stack_id] = &(*curr)->right;
+
+		(*curr)->left = tmp->left;
+		*curr = (*curr)->right;
+
+		*parent_stack[node_stack_id] = tmp->right;
+	} else {
+		color == (*curr)->color;
+		*curr = (*curr)->left;
+	}
+	if (color == BLACK) {
+		_delete_fixup(parent_stack, stack_top);
+	}
+	free(tmp);
+}
+
+static void _delete_fixup(struct rb_tree_node ***stack, uint8_t stack_top)
+{
+	struct rb_tree_node **curr = stack[--stack_top];
+	struct rb_tree_node **parent;
+	while (stack_top > 0 && (*curr)->color == BLACK) {
+		parent = stack[stack_top - 1];
+		if (*curr == (*parent)->left) {
+			if ((*parent)->right->color == RED) {
+				(*parent)->right->color = BLACK;
+				(*parent)->color = RED;
+				_rb_tree_right_rotate(parent);
+				stack[stack_top++] = parent = &(*parent)->left;
+			}
+			if ((*parent)->right->right->color == BLACK
+				&& (*parent)->right->left->color == BLACK) {
+				(*parent)->right->color = RED;
+				curr = stack[--stack_top];
+			} else if ((*parent)->right->right->color == BLACK) {
+				(*parent)->right->left->color = BLACK;
+				(*parent)->right->color = RED;
+				_rb_tree_right_rotate(&(*parent)->right);
+
+				(*parent)->right->color = (*parent)->color;
+				(*parent)->color = BLACK;
+				(*parent)->right->right->color = BLACK;
+				break;
+			}
+		} else {
+			if ((*parent)->left->color == RED) {
+				(*parent)->left->color = BLACK;
+				(*parent)->color = RED;
+				_rb_tree_left_rotate(parent);
+				stack[stack_top++] = parent = &(*parent)->right;
+			}
+			if ((*parent)->left->left->color == BLACK
+				&& (*parent)->left->right->color == BLACK) {
+				(*parent)->left->color = RED;
+				curr = stack[--stack_top];
+			} else if ((*parent)->left->left->color == BLACK) {
+				(*parent)->left->right->color = BLACK;
+				(*parent)->left->color = RED;
+				_rb_tree_left_rotate(&(*parent)->left);
+
+				(*parent)->left->color = (*parent)->color;
+				(*parent)->color = BLACK;
+				(*parent)->left->left->color = BLACK;
+				break;
+			}
+		}
+	}
+
+	(*curr)->color = BLACK;
 }
 
 struct rb_tree_node *rb_tree_search(struct rb_tree_node *head, int64_t data)
