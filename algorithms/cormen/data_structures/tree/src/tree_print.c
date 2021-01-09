@@ -192,6 +192,8 @@ struct _node_frame __list_delete(struct __list **head, struct _tree_node *key)
 
 			break;
 		}
+		prev = prev->next;
+		curr = curr->next;
 	}
 
 	return frame;
