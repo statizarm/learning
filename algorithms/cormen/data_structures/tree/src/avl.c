@@ -3,6 +3,24 @@
 
 #include "avl.h"
 
+static const uint8_t _htab[] = {
+	1, 0, 0,
+	0, 0, -1,
+	0, 0, 0,
+	0, -1,
+	0, 1,
+	1, 0,
+	1, 0
+};
+
+#define big_rotate_htab_left_ptr (&(_htab[4]))
+#define big_rotate_htab_right_ptr (&(_htab[1]))
+#define big_rotate_htab_root_ptr (&(_htab[7]))
+#define left_rotate_htab_left_ptr (&(_htab[13]))
+#define left_rotate_htab_root_ptr (&(_htab[15]))
+#define right_rotate_htab_right_ptr (&(_htab[10]))
+#define right_rotate_htab_root_ptr (&(_htab[12]))
+
 extern struct avl_tree_node *nil;
 
 struct avl_tree_node *_new_node(int64_t data);
@@ -50,14 +68,16 @@ void _avl_tree_insert(struct avl_tree_node **head, int64_t data)
 	while (*head != nil) {
 		stack[top].node = head;
 		if (data < (*head)->data) {
-			stack[top++].delta = -1;
+			stack[top].delta = -1;
 			head = &(*head)->left;
 		} else if (data > (*head)->data) {
-			stack[top++].delta = 1;
+			stack[top].delta = 1;
 			head = &(*head)->right;
 		} else {
 			goto exit;
 		}
+
+		++top;
 	}
 
 	*head = _new_node(data);
@@ -108,13 +128,9 @@ static void _avl_tree_big_right_rotate(struct avl_tree_node **head)
 	*head = tmp;
 
 	// calculate h:
-	// if height == +1 -> h = 0 else height == -1 -> h = 1
-	h = (int8_t) ((uint8_t) (*head)->height >> 7);
-
-	(*head)->right->height = h;
-	(*head)->left->height = h - 1;
-	(*head)->height = 0;
-	
+	tmp->left->height = big_rotate_htab_left_ptr[tmp->height];
+	tmp->right->height = big_rotate_htab_right_ptr[tmp->height];
+	tmp->height = big_rotate_htab_root_ptr[tmp->height];
 }
 
 static void _avl_tree_big_left_rotate(struct avl_tree_node **head)
@@ -133,13 +149,10 @@ static void _avl_tree_big_left_rotate(struct avl_tree_node **head)
 	// moving dst node to root
 	*head = tmp;
 
-	// calc h:
-	// see _avl_tree_big_right_rotate
-	h = (int8_t) ((uint8_t) (*head)->height >> 7);
-
-	tmp->right->height = h;
-	tmp->left->height = h - 1;
-	tmp->height = 0;
+	// calculate h:
+	tmp->left->height = big_rotate_htab_left_ptr[tmp->height];
+	tmp->right->height = big_rotate_htab_right_ptr[tmp->height];
+	tmp->height = big_rotate_htab_root_ptr[tmp->height];
 }
 
 static void _avl_tree_right_rotate(struct avl_tree_node **head)
@@ -151,8 +164,8 @@ static void _avl_tree_right_rotate(struct avl_tree_node **head)
 
 	*head = tmp;
 
-	tmp->left->height = 0;
-	tmp->height = 0;
+	tmp->right->height = right_rotate_htab_right_ptr[tmp->height];
+	tmp->height = right_rotate_htab_root_ptr[tmp->height];
 }
 
 static void _avl_tree_left_rotate(struct avl_tree_node **head)
@@ -164,13 +177,98 @@ static void _avl_tree_left_rotate(struct avl_tree_node **head)
 
 	*head = tmp;
 
-	tmp->height = 0;
-	tmp->left->height = 0;
+	tmp->left->height = left_rotate_htab_left_ptr[tmp->height];
+	tmp->height = left_rotate_htab_root_ptr[tmp->height];
 }
+
+static void _avl_tree_delete_fixup(struct _path *stack, uint8_t top);
 
 void avl_tree_delete(struct avl_tree_node **head, int64_t data)
 {
+	struct _path stack[32];
+	struct avl_tree_node *tmp;
+	uint8_t top = 0;
+	uint8_t node_id;
 
+	while (*head != nil) {
+		if (data < (*head)->data) {
+			stack[top].node = head;
+			stack[top].delta = 1;
+			head = &(*head)->left;
+		} else if (data > (*head)->data) {
+			stack[top].node = head;
+			stack[top].delta = -1;
+			head = &(*head)->right;
+		} else {
+			goto node_founded;
+		}
+
+		++top;
+	}
+	goto exit;
+node_founded:
+	tmp = *head;
+	if (tmp->right != nil) {
+		node_id = top;
+		stack[top].node = head;
+		stack[top++].delta = -1;
+
+		head = &tmp->right;
+		while ((*head)->left != nil) {
+			stack[top].node = head;
+			stack[top].delta = 1;
+
+			head = &(*head)->left;
+
+			++top;
+		}
+
+		*(stack[node_id++].node) = *head;
+		(*head)->left = tmp->left;
+
+		stack[node_id].node = &(*head)->right;
+		*head = (*head)->right;
+		*(stack[node_id].node) = tmp->right;
+
+		free(tmp);
+		
+	} else {
+		*head = tmp->left;
+		free(tmp);
+	}
+
+	_avl_tree_delete_fixup(stack, top);
+exit:
+	return;
+}
+
+static void _avl_tree_delete_fixup(struct _path *stack, uint8_t top) {
+	struct avl_tree_node **head;
+	int8_t height;
+	while (top > 0) {
+		head = stack[--top].node;
+		height = (*head)->height + stack[top].delta;
+		if (height < -1) {
+			if ((*head)->left->height > 0) {
+				_avl_tree_big_right_rotate(head);
+			} else {
+				_avl_tree_right_rotate(head);
+			}
+		} else if (height > 1) {
+			if ((*head)->right->height < 0) {
+				_avl_tree_big_left_rotate(head);
+			} else {
+				_avl_tree_left_rotate(head);
+			}
+		} else {
+			if ((*head)->height == 0) {
+				(*head)->height = height;
+				break;
+			}
+
+			(*head)->height = height;
+		}
+	}
 }
 
 struct avl_tree_node *avl_tree_search(struct avl_tree_node *head, int64_t data)
@@ -230,7 +328,7 @@ void avl_node_toa(struct avl_tree_node *node, char *buf)
 	if (node == NULL) {
 		sprintf(buf, "NIL");
 	} else {
-		sprintf(buf, "%d", node->data);
+		sprintf(buf, "%d", node->height);
 	}
 }
 
