@@ -10,7 +10,7 @@ static const uint8_t _htab[] = {
 	0, -1,
 	0, 1,
 	1, 0,
-	1, 0
+	-1, 0
 };
 
 #define big_rotate_htab_left_ptr (&(_htab[4]))
@@ -225,6 +225,7 @@ node_founded:
 
 		*(stack[node_id++].node) = *head;
 		(*head)->left = tmp->left;
+		(*head)->height = tmp->height;
 
 		stack[node_id].node = &(*head)->right;
 		*head = (*head)->right;

@@ -130,6 +130,7 @@ void _hash_tab_free(struct _hash_tab *tab)
 		++mem;
 	}
 
+	free(tab->mem);
 	free(tab);
 }
 
