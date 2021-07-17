@@ -1,0 +1,24 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/art/learning/opengl/1.3/1_3/main.cpp
+iostream
+-
+GL/glew.h
+-
+GLFW/glfw3.h
+-
+shader.h
+/home/art/learning/opengl/1.3/1_3/shader.h
+
+/home/art/learning/opengl/1.3/1_3/shader.h
+filesystem
+-
+GL/gl.h
+-
+

@@ -1,0 +1,36 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/art/learning/opengl/1.5/1_5/main.cpp
+cmath
+-
+iostream
+-
+GL/glew.h
+-
+GLFW/glfw3.h
+-
+shader.h
+/home/art/learning/opengl/1.5/1_5/shader.h
+texture.h
+/home/art/learning/opengl/1.5/1_5/texture.h
+
+/home/art/learning/opengl/1.5/1_5/shader.h
+filesystem
+-
+GL/gl.h
+-
+
+/home/art/learning/opengl/1.5/1_5/texture.h
+filesystem
+-
+string
+-
+GL/gl.h
+-
+
