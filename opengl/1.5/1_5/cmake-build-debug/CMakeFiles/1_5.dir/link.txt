@@ -1,1 +1,0 @@
-/bin/g++ -g CMakeFiles/1_5.dir/main.cpp.o CMakeFiles/1_5.dir/shader.cpp.o CMakeFiles/1_5.dir/texture.cpp.o -o 1_5  -lGL -lglfw -lGLEW -lsoil 

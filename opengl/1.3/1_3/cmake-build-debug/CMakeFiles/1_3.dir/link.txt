@@ -1,1 +1,0 @@
-/bin/g++ -g CMakeFiles/1_3.dir/main.cpp.o CMakeFiles/1_3.dir/shader.cpp.o -o 1_3  -lGL -lGLEW -lglfw 

@@ -1,4 +1,0 @@
-/opt/clion-2021.1.1/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER=/bin/g++ -G "CodeBlocks - Unix Makefiles" /home/art/learning/opengl/1_8
--- Configuring done
--- Generating done
--- Build files have been written to: /home/art/learning/opengl/1_8/cmake-build-debug

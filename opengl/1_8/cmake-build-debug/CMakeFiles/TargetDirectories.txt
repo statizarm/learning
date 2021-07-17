@@ -1,3 +1,0 @@
-/home/art/learning/opengl/1_8/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/home/art/learning/opengl/1_8/cmake-build-debug/CMakeFiles/edit_cache.dir
-/home/art/learning/opengl/1_8/cmake-build-debug/CMakeFiles/1_8.dir

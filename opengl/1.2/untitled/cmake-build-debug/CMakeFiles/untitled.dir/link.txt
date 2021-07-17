@@ -1,1 +1,0 @@
-/bin/g++ -g CMakeFiles/untitled.dir/main.cpp.o -o untitled  -lGL -lGLEW -lglfw 

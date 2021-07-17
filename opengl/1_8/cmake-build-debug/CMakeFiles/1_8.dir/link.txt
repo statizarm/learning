@@ -1,1 +1,0 @@
-/bin/g++ -g CMakeFiles/1_8.dir/src/main.cpp.o CMakeFiles/1_8.dir/src/shader.cpp.o CMakeFiles/1_8.dir/src/texture.cpp.o -o 1_8  -lGL -lsoil -lGLEW -lglfw 
