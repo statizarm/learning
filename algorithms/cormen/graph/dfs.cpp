@@ -7,7 +7,9 @@
 #include <stack>
 
 struct Graph {
-  std::unordered_map<int, std::unordered_set<int>> adj;
+  using table_type = std::unordered_map<int, std::unordered_set<int>>;
+  using child_iterator = table_type::mapped_type::iterator;
+  table_type adj;
 };
 
 std::istream &operator>>(std::istream &in, Graph &g) {
@@ -37,28 +39,32 @@ std::istream &operator>>(std::istream &in, Graph &g) {
 
 int main() {
   Graph g;
+  int start;
 
   std::cin >> g;
+  std::cin >> start;
 
   std::unordered_set<int> visited;
-  std::stack<int> stack;
-  stack.push(g.adj.begin()->first);
+  std::stack<std::pair<int, typename Graph::child_iterator>> stack;
+  stack.emplace(start, g.adj[start].begin());
 
-  for (auto v = stack.top(); !stack.empty(); v = stack.top()) {
-    if (visited.find(v) != visited.end() || g.adj[v].empty()) {
-      std::cout << v << std::endl;
-      stack.pop();
-      continue;
-    }
+  while (!stack.empty()) {
+    auto &[v, it] = stack.top();
 
     visited.insert(v);
 
-    for (auto u : g.adj[v]) {
-      if (visited.find(u) == visited.end()) {
-        stack.push(u);
-      }
+    while (it != g.adj[v].end() && visited.find(*it) != visited.end()) {
+      ++it;
     }
-  }
+
+    if (it == g.adj[v].end()) {
+      stack.pop();
+      std::cout << v << std::endl;
+      continue;
+    }
+
+    stack.emplace(*it, g.adj[*it].begin());
+ }
 
   return 0;
 }
