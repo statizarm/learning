@@ -2,3 +2,5 @@
 *.hi
 main
 test*
+**.idea**
+**build**
