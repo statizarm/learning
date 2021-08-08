@@ -3,7 +3,8 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-#include "shape.h"
+#include "shader.h"
+#include "shader_program.h"
 
 void set_viewport(GLFWwindow *window) {
   int width, height;
@@ -33,6 +34,27 @@ int main() {
   glfwMakeContextCurrent(window);
 
   glewInit();
+
+  Shader shaders[] = {
+      Shader::make_shader(GL_VERTEX_SHADER, "../shaders/shader.vert"),
+      Shader::make_shader(GL_FRAGMENT_SHADER, "../shaders/shader.frag")
+  };
+
+  for (const auto &s: shaders) {
+    if (!s) {
+      std::cerr << s.info_log() << std::endl;
+    }
+  }
+
+  ShaderProgram program = ShaderProgram::make_program(shaders[0],
+                                                      shaders[1],
+                                                      "model",
+                                                      "view",
+                                                      "projection",
+                                                      {"texture1", "texture2"});
+  if (!program) {
+    std::cerr << program.info_log() << std::endl;
+  }
 
   set_viewport(window);
 
