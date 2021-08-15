@@ -5,6 +5,8 @@
 #ifndef CUBE_OF_CUBES_INCLUDE_SHADER_PROGRAM_H_
 #define CUBE_OF_CUBES_INCLUDE_SHADER_PROGRAM_H_
 
+#include "shader.h"
+
 #include <filesystem>
 #include <vector>
 #include <string>
@@ -12,7 +14,6 @@
 #include <GL/glew.h>
 #include <GL/gl.h>
 
-#include "shader.h"
 
 class ShaderProgram {
  public:

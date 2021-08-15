@@ -1,13 +1,15 @@
 //
 // Created by art on 8/15/21.
 //
+
+#include <iostream>
 #include <glm/gtc/matrix_transform.hpp>
-#include <camera.h>
 
 #include "camera.h"
 
+
 ViewCamera::ViewCamera(const glm::vec3 &position, const glm::vec3 &up, const glm::vec3 &dst) noexcept
-    : position_(position), up_(up), front_(glm::normalize(dst - position)), speed_(0.1f) { }
+    : position_(position), up_(up), front_(glm::normalize(dst - position)), speed_(20.0f) { }
 
 ViewCamera &ViewCamera::move(Direction direction, float delta_time) noexcept {
   switch (direction) {
@@ -26,6 +28,8 @@ ViewCamera &ViewCamera::move(Direction direction, float delta_time) noexcept {
     default:
       break;
   }
+
+  std::cout << "Camera position: " << this->position_[0] << " " << this->position_[1] << " " << this->position_[2] << std::endl;
   return *this;
 }
 

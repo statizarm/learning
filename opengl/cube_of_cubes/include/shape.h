@@ -5,11 +5,14 @@
 #ifndef CUBE_OF_CUBES_INCLUDE_SHAPE_H_
 #define CUBE_OF_CUBES_INCLUDE_SHAPE_H_
 
+#include "renderer.h"
+#include "texture.h"
+
+#include <unordered_map>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "renderer.h"
-#include "texture.h"
 
 struct Prototype {
   Prototype(Renderer::MeshDescriptor meshd, const std::vector<Texture2D *> &textures) noexcept;
@@ -27,6 +30,8 @@ class Shape {
   Shape(const Prototype *shape_prototype, glm::vec3 position) noexcept;
 
   Shape() = delete;
+
+  virtual ~Shape() = default;
 
   Shape *rotate(glm::vec3 axis, float angle) noexcept;
   Shape *move(glm::vec3 direction) noexcept;
@@ -47,18 +52,32 @@ class Shape {
     return this;
   }
 
-  void render(const Renderer &renderer, const ShaderProgram &program) noexcept;
+  virtual void render(const Renderer &renderer, const ShaderProgram &program) const noexcept;
+  [[nodiscard]] virtual Shape *clone() const noexcept;
 
  protected:
-  virtual glm::mat4x4 model() {
-    return this->scale_ * glm::translate(glm::mat4x4(1.0f), this->position_) * this->rotation_;
-  }
-
   const Prototype *prototype_;
   glm::mat4x4 rotation_;
   glm::mat4x4 scale_;
   glm::vec3 position_;
+
  private:
+};
+
+class ShapeSystem : public Shape {
+ public:
+  ShapeSystem(const Shape *shape_proto, float distance) noexcept;
+
+  ~ShapeSystem() noexcept override;
+
+  void render(const Renderer &renderer, const ShaderProgram &program) const noexcept override;
+  [[nodiscard]] Shape *clone() const noexcept override;
+ protected:
+ private:
+  std::unordered_map<Shape *, glm::vec4> positions_;
+  glm::vec3 rotation_vector_;
+  Shape *shapes_[8];
+  float distance_;
 };
 
 #endif //CUBE_OF_CUBES_INCLUDE_SHAPE_H_
