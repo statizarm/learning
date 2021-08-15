@@ -1,11 +1,15 @@
 //
 // Created by art on 8/7/21.
 //
+#include <iostream>
+
 #include <GL/glew.h>
 #include <glm/gtc/type_ptr.hpp>
 
 #include "renderer.h"
 
+Renderer::Renderer(ViewCamera *view, ProjectionCamera *projection) noexcept
+    : view_(view), projection_(projection) { }
 
 Renderer::~Renderer() {
   glDeleteBuffers((GLsizei) this->vbos_.size(), this->vbos_.data());
@@ -16,12 +20,10 @@ void Renderer::render(Renderer::MeshDescriptor md,
                       const ShaderProgram &shader_program,
                       const Renderer::TextureDescriptor *texture_descriptors,
                       GLsizei n_textures,
-                      const glm::mat4x4 &model,
-                      const glm::mat4x4 &view,
-                      const glm::mat4x4 &projection) const noexcept {
+                      const glm::mat4x4 &model) const noexcept {
   auto description = this->mesh_render_description_[md];
-  glBindVertexArray(description.vaod);
   shader_program.use();
+  glBindVertexArray(description.vaod);
 
   const auto &textures_locations = shader_program.textures_locations();
   if (n_textures > textures_locations.size()) {
@@ -34,55 +36,46 @@ void Renderer::render(Renderer::MeshDescriptor md,
     glUniform1i(textures_locations[i], i);
   }
 
+  auto &&view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+  auto &&projection = this->projection_->projection();
   glUniformMatrix4fv(shader_program.model_matrix_location(), 1, GL_FALSE, glm::value_ptr(model));
   glUniformMatrix4fv(shader_program.view_matrix_location(), 1, GL_FALSE, glm::value_ptr(view));
   glUniformMatrix4fv(shader_program.projection_matrix_location(), 1, GL_FALSE, glm::value_ptr(projection));
 
-  glDrawArrays(GL_TRIANGLES, description.first, description.n_triangles);
+  glDrawArrays(GL_TRIANGLES, description.first, description.n_vertices);
+  //std::cout << glGetError() << std::endl;
+
+  glBindVertexArray(0);
 }
 
-Renderer::MeshDescriptor Renderer::allocate_mesh(const GLfloat *mesh_data, GLsizei size, GLsizei n_triangles) noexcept {
+Renderer::MeshDescriptor Renderer::specify_mesh(const GLfloat *mesh_data,
+                                                GLsizei mesh_size,
+                                                GLsizei n_vertices,
+                                                const AttributeSpecification *specs,
+                                                GLsizei n_attributes) noexcept {
   auto md = (Renderer::MeshDescriptor) this->mesh_render_description_.size();
 
   this->mesh_render_description_.emplace_back();
   this->mesh_render_description_[md].first = 0;
-  this->mesh_render_description_[md].n_triangles = n_triangles;
+  this->mesh_render_description_[md].n_vertices = n_vertices;
 
-  glGenBuffers(1, &this->mesh_render_description_[md].vbod);
-  this->vbos_.push_back(this->mesh_render_description_[md].vbod);
+  GLuint vbod;
+  glGenBuffers(1, &vbod);
+  glGenVertexArrays(1, &this->mesh_render_description_[md].vaod);
 
-  glBindBuffer(GL_ARRAY_BUFFER, this->mesh_render_description_[md].vbod);
-  glBufferData(GL_ARRAY_BUFFER, size, mesh_data, GL_STATIC_DRAW);
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  this->vbos_.push_back(vbod);
+  this->vaos_.push_back(this->mesh_render_description_[md].vaod);
 
-  return md;
-}
+  glBindVertexArray(this->mesh_render_description_[md].vaod);
 
-Renderer::AttributesDescriptor
-Renderer::specify_attributes(const AttributeSpecification *specs, GLsizei size) noexcept {
-  Renderer::VAODescriptor vaod;
+  glBindBuffer(GL_ARRAY_BUFFER, vbod);
+  glBufferData(GL_ARRAY_BUFFER, mesh_size, mesh_data, GL_STATIC_DRAW);
 
-  glGenVertexArrays(1, &vaod);
-  glBindVertexArray(vaod);
-  while(--size >= 0) {
-    glVertexAttribPointer(specs[size].location, specs[size].size, specs[size].type, GL_FALSE, specs[size].stride, specs[size].offset);
-    glEnableVertexAttribArray(specs[size].location);
+  for (int i = 0; i < n_attributes; ++i) {
+    glVertexAttribPointer(specs[i].location, specs[i].size, specs[i].type, GL_FALSE, specs[i].stride, specs[i].offset);
+    glEnableVertexAttribArray(specs[i].location);
   }
 
-  auto ad = (Renderer::AttributesDescriptor) this->vaos_.size();
-  this->vaos_.push_back(vaod);
-
-  return ad;
-}
-
-void Renderer::specify_mesh_render_data(Renderer::MeshDescriptor meshd,
-                                        Renderer::AttributesDescriptor attrsd) noexcept {
-
-  this->mesh_render_description_[meshd].vaod = this->vaos_[attrsd];
-
-  glBindVertexArray(this->mesh_render_description_[meshd].vaod);
-  glBindBuffer(GL_ARRAY_BUFFER, this->mesh_render_description_[meshd].vbod);
   glBindVertexArray(0);
+  return md;
 }
-
-

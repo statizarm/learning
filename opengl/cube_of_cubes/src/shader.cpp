@@ -32,6 +32,10 @@ Shader Shader::make_shader(GLenum shader_type, const std::filesystem::path &shad
   glShaderSource(s.shader_, (GLsizei) source_lines.size(), source_lines.data(), nullptr);
   glCompileShader(s.shader_);
 
+  for (auto buf : source_lines) {
+    delete[] buf;
+  }
+
   GLint shader_compiled;
   glGetShaderiv(s.shader_, GL_COMPILE_STATUS, &shader_compiled);
   if (shader_compiled != GL_TRUE) {

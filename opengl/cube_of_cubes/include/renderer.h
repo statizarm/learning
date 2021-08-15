@@ -5,16 +5,18 @@
 #ifndef CUBE_OF_CUBES_INCLUDE_RENDERER_H_
 #define CUBE_OF_CUBES_INCLUDE_RENDERER_H_
 
+#include "shader_program.h"
+#include "camera.h"
+
 #include <vector>
 #include <unordered_map>
 
 #include <GL/gl.h>
 #include <glm/glm.hpp>
 
-#include "shader_program.h"
 
 struct AttributeSpecification {
-  AttributeSpecification(GLuint location, GLsizei size, GLenum type, GLsizei stride, GLvoid *offset)
+  AttributeSpecification(GLuint location, GLsizei size, GLenum type, GLsizei stride, GLvoid *offset) noexcept
       : offset(offset), size(size), stride(stride), location(location), type(type) { }
   GLvoid *offset;
   GLsizei size;
@@ -29,7 +31,7 @@ class Renderer {
   using TextureDescriptor = GLuint;
   using AttributesDescriptor = GLint;
 
-  Renderer() = default;
+  Renderer(ViewCamera *view, ProjectionCamera *projection) noexcept;
 
   ~Renderer();
 
@@ -37,29 +39,29 @@ class Renderer {
               const ShaderProgram &shader_program,
               const TextureDescriptor *texture_descriptors,
               GLsizei n_textures,
-              const glm::mat4x4 &model,
-              const glm::mat4x4 &view,
-              const glm::mat4x4 &projection) const noexcept;
+              const glm::mat4x4 &model) const noexcept;
 
-  [[nodiscard]] MeshDescriptor allocate_mesh(const GLfloat *mesh_data, GLsizei size, GLsizei n_triangles) noexcept;
-  [[nodiscard]] AttributesDescriptor specify_attributes(const AttributeSpecification *specs, GLsizei size) noexcept;
-  void specify_mesh_render_data(MeshDescriptor meshd,
-                                AttributesDescriptor attrsd) noexcept;
+  [[nodiscard]] MeshDescriptor specify_mesh(const GLfloat *mesh_data,
+                                            GLsizei mesh_size,
+                                            GLsizei n_vertices,
+                                            const AttributeSpecification *specs,
+                                            GLsizei n_attributes) noexcept;
 
  private:
   using VAODescriptor = GLuint;
   using VBODescriptor = GLuint;
 
   struct RenderDescription {
-    GLsizei n_triangles;
+    GLsizei n_vertices;
     VAODescriptor vaod;
-    VBODescriptor vbod;
     GLint first;
   };
 
   std::vector<RenderDescription> mesh_render_description_;
   std::vector<VAODescriptor> vaos_;
   std::vector<VBODescriptor> vbos_;
+  ViewCamera *view_;
+  ProjectionCamera *projection_;
 };
 
 #endif //CUBE_OF_CUBES_INCLUDE_RENDERER_H_
