@@ -17,7 +17,7 @@ struct Timestamp {
   static constexpr int unvisited_value = 0;
   static constexpr int begin_value = unvisited_value + 1;
   Timestamp() : d(unvisited_value), f(unvisited_value) { }
-  
+
   int d;
   int f;
 };
@@ -51,7 +51,7 @@ int main() {
   std::unordered_map<int, Timestamp> times;
   int t = Timestamp::begin_value;
 
-  for(auto &p : g.adj) {
+  for (auto &p : g.adj) {
     if (times[p.first].d != Timestamp::unvisited_value) {
       continue;
     }

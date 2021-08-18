@@ -50,7 +50,7 @@ int main() {
       while (neigh != adj[u].end() && visited.find(*neigh) != visited.end()) {
         ++neigh;
       }
-      
+
       if (neigh == adj[u].end()) {
         stack.pop();
         order.push(u);
@@ -76,7 +76,8 @@ int main() {
       auto &[u, neigh] = stack.top();
       visited.insert(u);
 
-      while (neigh != transp[u].end() && visited.find(*neigh) != visited.end()) {
+      while (neigh != transp[u].end() &&
+          visited.find(*neigh) != visited.end()) {
         neigh++;
       }
 

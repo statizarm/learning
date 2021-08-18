@@ -6,7 +6,7 @@
 #include <unordered_set>
 #include <queue>
 
-int main () {
+int main() {
   std::unordered_map<int, std::unordered_set<int>> adj;
   std::unordered_map<int, int> input_degree;
   std::queue<int> zero_queue;

@@ -64,7 +64,7 @@ int main() {
     }
 
     stack.emplace(*it, g.adj[*it].begin());
- }
+  }
 
   return 0;
 }

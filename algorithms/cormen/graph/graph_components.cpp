@@ -8,14 +8,14 @@
 
 using adj_type = std::unordered_map<int, std::unordered_set<int>>;
 
-adj_type &insert_edge(adj_type &adj, int start, int end) {
-  if (auto it = adj.find(start); it != adj.end()) {
+adj_type &insert_edge(adj_type *adj, int start, int end) {
+  if (auto it = adj->find(start); it != adj->end()) {
     it->second.insert(end);
   } else {
-    adj.insert({start, adj_type::mapped_type {end}});
+    adj->insert({start, adj_type::mapped_type {end}});
   }
 
-  return adj;
+  return *adj;
 }
 
 std::istream &operator>>(std::istream &in, adj_type &adj) {
@@ -24,7 +24,7 @@ std::istream &operator>>(std::istream &in, adj_type &adj) {
   while (--n >= 0) {
     int start, end;
     in >> start >> end;
-    insert_edge(adj, start, end);
+    insert_edge(&adj, start, end);
   }
   return in;
 }
@@ -38,7 +38,7 @@ std::ostream &operator<<(std::ostream &out, const adj_type &adj) {
   return out;
 }
 
-std::stack<adj_type::mapped_type::value_type> 
+std::stack<adj_type::mapped_type::value_type>
 topological_sort(adj_type adj) {
   std::stack<adj_type::mapped_type::value_type> order;
 
@@ -115,7 +115,7 @@ adj_type component_graph(adj_type adj) {
         if (it == component_table.end()) {
           break;
         } else if (it->second != component_counter) {
-          insert_edge(component_graph, it->second, component_table[u]);
+          insert_edge(&component_graph, it->second, component_table[u]);
         }
         ++neighs;
       }
@@ -154,7 +154,7 @@ bool is_semiconnected(const adj_type &adj) {
   return true;
 }
 
-int main () {
+int main() {
   adj_type adj;
 
   std::cin >> adj;
