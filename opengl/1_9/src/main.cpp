@@ -10,6 +10,7 @@
 
 #include "shader.h"
 #include "texture.h"
+#include "camera.h"
 
 GLfloat vertices[] = {
     -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
@@ -68,9 +69,52 @@ glm::vec3 cube_positions[] = {
     glm::vec3(-1.3f,  1.0f, -1.5f)
 };
 
+bool keys[1024];
+float fov = glm::pi<float>() / 4;
+
+Camera camera {glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 5.0f};
+
+void do_movement(double delta_time) {
+  if (keys[GLFW_KEY_W]) {
+    camera.move_forward(delta_time);
+  }
+  if (keys[GLFW_KEY_S]) {
+    camera.move_backward(delta_time);
+  }
+  if (keys[GLFW_KEY_A]) {
+    camera.move_left(delta_time);
+  }
+  if (keys[GLFW_KEY_D]) {
+    camera.move_right(delta_time);
+  }
+}
+
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode) {
-  if (key == GLFW_KEY_ESCAPE) {
-    glfwSetWindowShouldClose(window, GLFW_TRUE);
+  if (action == GLFW_PRESS) {
+    switch (key) {
+      case GLFW_KEY_ESCAPE:
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
+        break;
+      case GLFW_KEY_W:
+      case GLFW_KEY_S:
+      case GLFW_KEY_A:
+      case GLFW_KEY_D:
+        keys[key] = true;
+        break;
+      default:
+        break;
+    }
+  } else if (action == GLFW_RELEASE){
+    switch (key) {
+      case GLFW_KEY_W:
+      case GLFW_KEY_S:
+      case GLFW_KEY_A:
+      case GLFW_KEY_D:
+        keys[key] = false;
+        break;
+      default:
+        break;
+    }
   }
 }
 
@@ -82,10 +126,26 @@ void set_viewport(GLFWwindow *window) {
 }
 
 void mouse_callback(GLFWwindow *window, double x, double y) {
+  int width, height;
+  glfwGetWindowSize(window, &width, &height);
+
+  // ( x - w / 2 ) / (w / 2) = ( x - w / 2 ) * 2 / w = x * 2 / w - 1
+  double dx = x * 2.0f / (double) width - 1.0f;
+  double dy = y * 2.0f / (double) height - 1.0f;
+
+  camera.rotate(dx * 0.2f, - dy * 0.2f);
+
+  std::cout << "x = " << x << " y = " << y << std::endl;
+  glfwSetCursorPos(window, (double) width / 2, (double) height / 2);
 }
 
 void scroll_callback(GLFWwindow *window, double x_offset, double y_offset) {
-
+  fov -= (float) y_offset * 0.01f;
+  if (fov < glm::pi<float>() / 180.0f) {
+    fov = glm::pi<float>() / 180.0f;
+  } else if (fov > glm::pi<float>() / 3) {
+    fov = glm::pi<float>() / 3;
+  }
 }
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
@@ -163,10 +223,12 @@ int main() {
   glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
   glEnable(GL_DEPTH_TEST);
 
-  glm::vec3 look_dest (0.0f, 0.0f, 0.0f);
-
+  double frame_begin_time;
+  double frame_time = 0;
   while (glfwWindowShouldClose(window) == GLFW_FALSE) {
+    frame_begin_time = glfwGetTime();
     glfwPollEvents();
+    do_movement(frame_time);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     int width, height;
@@ -190,10 +252,8 @@ int main() {
                             glm::normalize(glm::vec3(1.0f, 1.0f, 0.0f)));
       }
 
-      float camX = sin(glm::radians(glfwGetTime() * 40.0f)) * 10.0f;
-      float camZ = cos(glm::radians(glfwGetTime() * 40.0f)) * 10.0f;
-      glm::mat4x4 view = glm::lookAt(glm::vec3(camX, 0.0f, camZ), look_dest, glm::vec3(0.0f, 1.0f, 0.0f));
-      glm::mat4x4 projection = glm::perspective(45.0f, (float) width / (float) height, 0.1f, 100.0f);
+      glm::mat4x4 view = camera.look_at();
+      glm::mat4x4 projection = glm::perspective(fov, (float) width / (float) height, 0.1f, 100.0f);
 
       glUniformMatrix4fv(program.uniform_location("model"), 1, GL_FALSE, glm::value_ptr(model));
       glUniformMatrix4fv(program.uniform_location("view"), 1, GL_FALSE, glm::value_ptr(view));
@@ -203,6 +263,8 @@ int main() {
     }
 
     glfwSwapBuffers(window);
+
+    frame_time = glfwGetTime() - frame_begin_time;
   }
 
   glDeleteBuffers(1, vertex_buffers);
